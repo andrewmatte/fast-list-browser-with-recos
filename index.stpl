@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Polyglot Vocab Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #F9FAFB;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .container {
+            max-width: 896px;
+            margin: 0 auto;
+            padding: 32px 16px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2563EB;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: #2563EB;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+        }
+
+        .language-selection p {
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .language-search {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .selected-languages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .language-tag {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .language-tag button {
+            margin-left: 8px;
+            color: #2563EB;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .language-tag button:hover {
+            color: #1E40AF;
+        }
+
+        .language-dropdown {
+            position: absolute;
+            z-index: 10;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .language-dropdown.hidden {
+            display: none;
+        }
+
+        .language-option {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .language-option:hover {
+            background-color: #F3F4F6;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-label input[type='checkbox'] {
+            height: 20px;
+            width: 20px;
+            margin-right: 8px;
+        }
+
+        .language-select {
+            padding: 8px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+        }
+
+        .word-display {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .main-word {
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .translation {
+            font-size: 24px;
+            color: #4B5563;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            background-color: #3B82F6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #2563EB;
+        }
+
+        .word-list-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .word-list {
+            list-style: none;
+        }
+
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .word-item:hover {
+            background-color: #F9FAFB;
+        }
+
+        .word-text {
+            font-size: 18px;
+        }
+
+        .word-translation {
+            color: #6B7280;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .relative {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='container'>
+        <h1>Polyglot Vocab Builder</h1>
+        <h2>unfinshed work in progress</h2>
+
+        <div class='card language-selection'>
+            <p>Select languages:</p>
+            <div class='relative'>
+                <input type='text' id='languageSearch' placeholder='Search languages...' class='language-search'>
+                <div id='selectedLanguages' class='selected-languages'></div>
+                <div id='languageDropdown' class='language-dropdown hidden'>
+                </div>
+                <div id="possibleLanguages"></div>
+            </div>
+        </div>
+
+        <div class='card'>
+
+            <div class='word-display'>
+                <h2 id='mainWord' class='main-word'>Welcome</h2>
+                <div id='translationContainer'>
+                    <span id='translation' class='translation'>Translation</span>
+                </div>
+            </div>
+        </div>
+
+        <div class='card'>
+            <h3 class='word-list-title'>Related Words</h3>
+            <ul id='wordList' class='word-list'>
+
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const languages = { 'afrikaans': 'af', 'albanian': 'sq', 'amharic': 'am', 'arabic': 'ar', 'armenian': 'hy', 'assamese': 'as', 'aymara': 'ay', 'azerbaijani': 'az', 'bambara': 'bm', 'basque': 'eu', 'belarusian': 'be', 'bengali': 'bn', 'bhojpuri': 'bho', 'bosnian': 'bs', 'bulgarian': 'bg', 'catalan': 'ca', 'cebuano': 'ceb', 'chichewa': 'ny', 'chinese (simplified)': 'zh-CN', 'chinese (traditional)': 'zh-TW', 'corsican': 'co', 'croatian': 'hr', 'czech': 'cs', 'danish': 'da', 'dhivehi': 'dv', 'dogri': 'doi', 'dutch': 'nl', 'english': 'en', 'esperanto': 'eo', 'estonian': 'et', 'ewe': 'ee', 'filipino': 'tl', 'finnish': 'fi', 'french': 'fr', 'frisian': 'fy', 'galician': 'gl', 'georgian': 'ka', 'german': 'de', 'greek': 'el', 'guarani': 'gn', 'gujarati': 'gu', 'haitian creole': 'ht', 'hausa': 'ha', 'hawaiian': 'haw', 'hebrew': 'iw', 'hindi': 'hi', 'hmong': 'hmn', 'hungarian': 'hu', 'icelandic': 'is', 'igbo': 'ig', 'ilocano': 'ilo', 'indonesian': 'id', 'irish': 'ga', 'italian': 'it', 'japanese': 'ja', 'javanese': 'jw', 'kannada': 'kn', 'kazakh': 'kk', 'khmer': 'km', 'kinyarwanda': 'rw', 'konkani': 'gom', 'korean': 'ko', 'krio': 'kri', 'kurdish (kurmanji)': 'ku', 'kurdish (sorani)': 'ckb', 'kyrgyz': 'ky', 'lao': 'lo', 'latin': 'la', 'latvian': 'lv', 'lingala': 'ln', 'lithuanian': 'lt', 'luganda': 'lg', 'luxembourgish': 'lb', 'macedonian': 'mk', 'maithili': 'mai', 'malagasy': 'mg', 'malay': 'ms', 'malayalam': 'ml', 'maltese': 'mt', 'maori': 'mi', 'marathi': 'mr', 'meiteilon (manipuri)': 'mni-Mtei', 'mizo': 'lus', 'mongolian': 'mn', 'myanmar': 'my', 'nepali': 'ne', 'norwegian': 'no', 'odia (oriya)': 'or', 'oromo': 'om', 'pashto': 'ps', 'persian': 'fa', 'polish': 'pl', 'portuguese': 'pt', 'punjabi': 'pa', 'quechua': 'qu', 'romanian': 'ro', 'russian': 'ru', 'samoan': 'sm', 'sanskrit': 'sa', 'scots gaelic': 'gd', 'sepedi': 'nso', 'serbian': 'sr', 'sesotho': 'st', 'shona': 'sn', 'sindhi': 'sd', 'sinhala': 'si', 'slovak': 'sk', 'slovenian': 'sl', 'somali': 'so', 'spanish': 'es', 'sundanese': 'su', 'swahili': 'sw', 'swedish': 'sv', 'tajik': 'tg', 'tamil': 'ta', 'tatar': 'tt', 'telugu': 'te', 'thai': 'th', 'tigrinya': 'ti', 'tsonga': 'ts', 'turkish': 'tr', 'turkmen': 'tk', 'twi': 'ak', 'ukrainian': 'uk', 'urdu': 'ur', 'uyghur': 'ug', 'uzbek': 'uz', 'vietnamese': 'vi', 'welsh': 'cy', 'xhosa': 'xh', 'yiddish': 'yi', 'yoruba': 'yo', 'zulu': 'zu' };
+        const languageCodes = {};
+        Object.keys(languages).map(key => languageCodes[languages[key] + "_words"] = key);
+        let data = [
+            {
+                "rw_words": "blackcurrant",
+                "lb_words": "schwaarz currant",
+                "cs_words": "obvinili",
+                "haw_words": "blackcurrant",
+                "ceb_words": "itom nga currant",
+                "tg_words": "карати сиёҳ",
+                "my_words": "bladders",
+                "yi_words": "שוואַרץ קורראַנט",
+                "doi_words": "blackens",
+                "gl_words": "blammo",
+                "gd_words": "curran dubh",
+                "sv_words": "blares",
+                "da_words": "solbær",
+                "af_words": "swartbessie",
+                "st_words": "blackcurrant",
+                "gn_words": "blackjacks",
+                "sd_words": "ڪارو ڪرنٽ",
+                "hi_words": "blackout",
+                "fr_words": "noirci",
+                "mai_words": "blackcurrant",
+                "tt_words": "кара",
+                "kn_words": "ಕಪ್ಪು ಕರ್ರಂಟ್",
+                "sq_words": "rrush pa fara e zezë",
+                "gu_words": "blackjacking",
+                "uz_words": "qora smorodina",
+                "ti_words": "blackjacks",
+                "zu_words": "ngokungasoleki",
+                "tr_words": "siyahkuş",
+                "tl_words": "blackcurrant",
+                "el_words": "είδος φραγκοστάφυλλου",
+                "iw_words": "עִנְבֵי שׁוּעָל",
+                "om_words": " gurraacha",
+                "pl_words": "ciemny cierń",
+                "la_words": "blacklisting",
+                "lv_words": "upenes",
+                "hy_words": "blankness",
+                "ny_words": "blackcurrant",
+                "ro_words": "blacktops",
+                "ar_words": "قمة سوداء",
+                "mk_words": "црна рибизла",
+                "no_words": "solbær",
+                "bm_words": "blackish",
+                "yo_words": "blackcurrant",
+                "nso_words": "blacked",
+                "cy_words": "cyrens duon",
+                "sk_words": " blanšírovanie",
+                "bg_words": "blacktopping",
+                "lo_words": "blameless",
+                "su_words": "currant hideung",
+                "ps_words": "bitchier",
+                "hu_words": "fekete ribizli",
+                "km_words": "blandishments",
+                "th_words": "ปากพล่าม",
+                "hr_words": "blackhead",
+                "pa_words": "blaring",
+                "ml_words": "കറുത്ത ഉണക്കമുന്തിരി",
+                "ug_words": "blackcurrant",
+                "ts_words": "blackcurrant",
+                "en_words": "blackcurrant",
+                "mr_words": "blacklists",
+                "sw_words": "bituminous",
+                "et_words": "mustsõstar",
+                "es_words": "guarda negra",
+                "it_words": "guardia",
+                "vi_words": "cay đen",
+                "xh_words": "blandness",
+                "ja_words": "停電",
+                "de_words": "Blasen",
+                "mg_words": "currant mainty",
+                "ko_words": "bivouacs",
+                "mt_words": "blanked",
+                "bs_words": "crna ribizla",
+                "be_words": "bland",
+                "eo_words": "nigraj",
+                "pt_words": "amora preta",
+                "ur_words": "کالی کشمش",
+                "jw_words": "currant ireng",
+                "eu_words": " blarney",
+                "gom_words": "blackballs",
+                "hmn_words": "blah",
+                "lus_words": "blackjacking",
+                "ig_words": "blackcurrant",
+                "ay_words": "blackish",
+                "fi_words": "mustaherukka",
+                "si_words": "කළු කරන්ට් ඇතුළු",
+                "ak_words": "bizarrely",
+                "fy_words": "swarte bessen",
+                "ta_words": "கருப்பட்டி",
+                "bho_words": "blackballing",
+                "sa_words": "blackboards",
+                "qu_words": "yana",
+                "mi_words": "karepe pango",
+                "ga_words": "cuiríní dubha",
+                "ru_words": "чернота",
+                "fa_words": "توت سیاه",
+                "is_words": "sólber",
+                "sl_words": "črnoglavec",
+                "sm_words": "blackcurrant",
+                "ky_words": "карагат",
+                "ka_words": "შავი მოცხარი",
+                "lg_words": "abaddugavu",
+                "counter": "5286",
+                "tk_words": "gara",
+                "ckb_words": "blacked",
+                "uk_words": "blanker",
+                "lt_words": "juodųjų serbentų",
+                "te_words": "నల్లద్రాక్ష",
+                "ilo_words": "blackguards",
+                "ku_words": "reşik",
+                "ht_words": "blancmange",
+                "or_words": "blackcurrant",
+                "ca_words": "blackbird",
+                "ha_words": "blackcurrant",
+                "ne_words": "कालो करेन्ट",
+                "kri_words": "blak",
+                "am_words": "blackcurrant",
+                "bn_words": "কালো কারেন্ট",
+                "ms_words": "blackcurrant",
+                "sn_words": "blackcurrant",
+                "az_words": "qara qarağat",
+                "ee_words": " blackest",
+                "kk_words": "қарақат",
+                "id_words": "lebih hitam",
+                "mn_words": "хар үхрийн нүд",
+                "sr_words": "бламелессли",
+                "as_words": " blacksmith",
+                "ln_words": "blackjack",
+                "co_words": "blacktopping",
+                "dv_words": "ބްލެކްލިސްޓްޑް",
+                "nl_words": "blackheads",
+                "so_words": "currant"
+            },
+            {
+                "mg_words": "busy",
+                "no_words": "rumper",
+                "mai_words": "ब्यूटेन",
+                "bho_words": "बुच",
+                "la_words": "busyness",
+                "cy_words": "bustaidd",
+                "hu_words": "pillangós",
+                "tk_words": "buttress",
+                "iw_words": "bygones",
+                "az_words": "döymələri",
+                "af_words": "buttercup",
+                "lt_words": "button",
+                "or_words": "buttons",
+                "gl_words": "busywork",
+                "so_words": "cafeterias",
+                "ca_words": "busywork",
+                "ceb_words": "butcher",
+                "fr_words": "boucher",
+                "ti_words": "butchering",
+                "es_words": "carniceros",
+                "en_words": "butane",
+                "uz_words": "tugmachalar",
+                "bs_words": "butcheries",
+                "kn_words": "calcining",
+                "mn_words": "caches",
+                "fi_words": "butane",
+                "si_words": "cadgers",
+                "hy_words": "butler",
+                "lb_words": "buxom",
+                "counter": "7188",
+                "te_words": "బ్యూటేన్",
+                "be_words": "butt",
+                "jw_words": "butchers",
+                "id_words": "tetapi",
+                "ug_words": "byword",
+                "rw_words": "cake",
+                "ta_words": "calculable",
+                "lus_words": "butch",
+                "sn_words": "buzzwords",
+                "ku_words": "buzzard",
+                "bg_words": "butteriest",
+                "da_words": "travlte",
+                "ln_words": "kasi",
+                "mt_words": "butterflying",
+                "sa_words": "butane",
+                "ha_words": "byes",
+                "tr_words": "buttering",
+                "fy_words": "bypasses",
+                "eu_words": "busy",
+                "sw_words": "butchery",
+                "lv_words": "byelaw",
+                "ms_words": "buzzards",
+                "sm_words": "bywords",
+                "mr_words": " butches",
+                "gn_words": "ocupado",
+                "ne_words": "butting",
+                "gd_words": "butter",
+                "vi_words": "butteries",
+                "ml_words": "ബ്യൂട്ടെയ്ൻ",
+                "sk_words": "butt",
+                "ru_words": "buttoning",
+                "km_words": "butchered",
+                "sr_words": "бусхвхацкинг",
+                "ko_words": "바쁜",
+                "hmn_words": "butch",
+                "ig_words": "site na-eme ihe",
+                "bm_words": "nka",
+                "mi_words": "cabals",
+                "et_words": "butchered",
+                "ilo_words": "ngem",
+                "ckb_words": "busy",
+                "lg_words": "butchered",
+                "tl_words": "butcher",
+                "sl_words": "butan",
+                "kk_words": "байт",
+                "tt_words": "bylines",
+                "zu_words": "buzzes",
+                "ar_words": "ممتلئة الجسم",
+                "mk_words": " cabooses",
+                "uk_words": "buttercups",
+                "gu_words": "but",
+                "ro_words": "bustle",
+                "nso_words": "mošomo",
+                "tg_words": " карам",
+                "my_words": "butchered",
+                "el_words": "buzzed",
+                "om_words": "butlers",
+                "haw_words": "cabinetmaker",
+                "ht_words": "butch",
+                "st_words": "kaho",
+                "co_words": "butane",
+                "yi_words": "קאַקאַלז",
+                "as_words": "butted",
+                "ak_words": "busy",
+                "ja_words": "buttocks",
+                "am_words": "የተጨናነቀ",
+                "hi_words": "butane",
+                "pt_words": "mas",
+                "yo_words": "bọtini",
+                "it_words": "ma",
+                "kri_words": "butchered",
+                "cs_words": "řeznictví",
+                "is_words": "framhjá",
+                "ga_words": "cnaipe",
+                "lo_words": "butch",
+                "ps_words": " bypass",
+                "bn_words": "byte",
+                "hr_words": "butan",
+                "ee_words": "kpakpaluʋui",
+                "su_words": "bust",
+                "ay_words": "butch",
+                "ka_words": "buzzing",
+                "ur_words": "butter nuts",
+                "ky_words": "cackled",
+                "gom_words": "व्यस्त",
+                "pa_words": "busiest",
+                "ts_words": "butch",
+                "nl_words": "maar",
+                "sq_words": " butches",
+                "dv_words": " ބުޗެސް",
+                "pl_words": "rzeźnik",
+                "xh_words": "butterfly",
+                "th_words": "buttress",
+                "sv_words": "upptagen",
+                "sd_words": "butterfingers",
+                "qu_words": "carnicería",
+                "eo_words": "buchered",
+                "ny_words": "bygones",
+                "fa_words": "cackled",
+                "de_words": "Metzgert",
+                "doi_words": "कसाई"
+            },
+            {
+                "so_words": "ugu nadiifsan",
+                "ta_words": "தூய்மையான",
+                "id_words": "clematis",
+                "gn_words": "garra",
+                "ha_words": "mafi tsabta",
+                "hu_words": "clever",
+                "lo_words": "cleavers",
+                "gom_words": "निवळ करप",
+                "fy_words": "skjinste",
+                "az_words": "ən təmiz",
+                "ckb_words": "clenching",
+                "sm_words": "sili ona mama",
+                "as_words": "clenching",
+                "st_words": "climaxing",
+                "lt_words": "švariausias",
+                "ht_words": "clement",
+                "kri_words": "klin",
+                "ku_words": "clitorises",
+                "mn_words": "хамгийн цэвэрхэн",
+                "zu_words": "cliffhanger",
+                "eu_words": "clicked",
+                "ps_words": "cleanliest",
+                "hy_words": "ամենամաքուր",
+                "no_words": "reneste",
+                "uk_words": "очищає",
+                "doi_words": "सफाई",
+                "fi_words": "clewing",
+                "mg_words": "madio indrindra",
+                "lus_words": "cleanings",
+                "si_words": "පිරිසිදුම",
+                "ti_words": "clearinghouses",
+                "ug_words": "ئەڭ پاكىز",
+                "mt_words": "clerk",
+                "om_words": "cleanse",
+                "sa_words": "clearing",
+                "nso_words": "cleaner",
+                "sk_words": "štiepenie",
+                "sv_words": "klickbara",
+                "km_words": "cleverly",
+                "tl_words": "clenching",
+                "en_words": "cleanliest",
+                "ky_words": "эң таза",
+                "ms_words": "paling bersih",
+                "uz_words": "eng toza",
+                "ny_words": "clientèle",
+                "ja_words": "食いしばる",
+                "af_words": "clinker",
+                "bn_words": "সবচেয়ে পরিষ্কার",
+                "gd_words": "clergywomen",
+                "ceb_words": "clichéd",
+                "pl_words": "oczyszczanie",
+                "it_words": "sfaldamento",
+                "yi_words": "קלינליאַסט",
+                "bm_words": "saniya",
+                "ak_words": "claustrophobia",
+                "sd_words": "clavichords",
+                "tr_words": "clear",
+                "my_words": "clearinghouses",
+                "rw_words": "isuku",
+                "hi_words": "cleanliest",
+                "ay_words": "clearances",
+                "is_words": "hreinasta",
+                "pt_words": "mais limpo",
+                "sn_words": "clinched",
+                "te_words": "పరిశుభ్రమైన",
+                "co_words": "clefs",
+                "ln_words": "clawed",
+                "fa_words": "تمیزترین",
+                "fr_words": "cleanlier",
+                "am_words": "በጣም ንጹህ",
+                "eo_words": "cleat",
+                "su_words": "paling bersih",
+                "mi_words": "tino ma",
+                "ka_words": "ყველაზე სუფთა",
+                "gu_words": "cleavage",
+                "haw_words": "maemae loa",
+                "el_words": "clinker",
+                "da_words": "clinchers",
+                "ko_words": "clematis",
+                "pa_words": "cleave",
+                "hr_words": "čistoća",
+                "ro_words": "clearing",
+                "sw_words": "clematis",
+                "iw_words": "הכי נקי",
+                "tg_words": "тозатарин",
+                "sq_words": "më të pastërt",
+                "sr_words": "цлеф",
+                "la_words": "climatic",
+                "sl_words": "očiščen",
+                "hmn_words": "cleaver",
+                "ar_words": "climactic",
+                "ee_words": "cleats",
+                "es_words": "cleanse",
+                "dv_words": "ކްލިއަރސް",
+                "qu_words": "clematis",
+                "or_words": "ପରିଷ୍କାର",
+                "tt_words": "иң чиста",
+                "yo_words": "cleanliest",
+                "ml_words": "ഏറ്റവും വൃത്തിയുള്ളത്",
+                "bg_words": "почиствания",
+                "lv_words": "clipped",
+                "mr_words": "clears",
+                "tk_words": "iň arassa",
+                "cy_words": "clicio",
+                "lb_words": "propperst",
+                "gl_words": "clemencia",
+                "bho_words": "क्लियरिंग",
+                "cs_words": "cleaving",
+                "nl_words": "opruiming",
+                "ga_words": "gearrthóga",
+                "jw_words": "paling resik",
+                "mk_words": "најчисто",
+                "vi_words": "cleverer",
+                "counter": "9679",
+                "ne_words": "सबैभन्दा सफा",
+                "bs_words": " clefts",
+                "xh_words": "ecocekileyo",
+                "ts_words": "cleavages",
+                "de_words": "sauber Sauberkeit",
+                "be_words": "climates",
+                "ilo_words": "clearing",
+                "kn_words": "ಅತ್ಯಂತ ಸ್ವಚ್ಛವಾದ",
+                "et_words": "kõige puhtam",
+                "ur_words": "cleaver",
+                "kk_words": "ең таза",
+                "ru_words": "clients",
+                "th_words": "คลีฟเวอร์ ... ซ้าย",
+                "mai_words": "सफाई",
+                "lg_words": "okuyonja",
+                "ca_words": "clearness",
+                "ig_words": "kacha dị ọcha"
+            },
+            {
+                "si_words": "පොකිරිස්සන්",
+                "nso_words": "cratering",
+                "ha_words": "kifi kifi",
+                "no_words": "kreps",
+                "ky_words": "рак балык",
+                "sn_words": "credibly",
+                "lb_words": "Kriibsen",
+                "ee_words": "creaming",
+                "vi_words": "creakier",
+                "az_words": "xərçəngkimilər",
+                "is_words": "krabbar",
+                "uk_words": "creamatoria",
+                "sv_words": "kräfta",
+                "my_words": "creditable",
+                "bm_words": "crazier",
+                "ti_words": "crayfish",
+                "gd_words": "crògan",
+                "ja_words": "クリーミーさ",
+                "lus_words": "crayons",
+                "am_words": "ክሬይፊሽ",
+                "ru_words": " crayola",
+                "ts_words": "crayfishes",
+                "ak_words": "krate",
+                "ceb_words": " credenzas",
+                "fi_words": "creaks",
+                "de_words": "creaked",
+                "tt_words": "бәләкәй балык",
+                "la_words": "creamiest",
+                "ms_words": "crematoria",
+                "ta_words": "நண்டு",
+                "sq_words": "karavidhe",
+                "ig_words": "ịsha",
+                "cy_words": "cimwch yr afon",
+                "tk_words": "keýik",
+                "lt_words": "crescendos",
+                "as_words": "creamery",
+                "mg_words": "orana",
+                "tr_words": "crazier",
+                "ur_words": "credence",
+                "ar_words": " زاحف",
+                "haw_words": "ʻuʻuku",
+                "mr_words": "creaky",
+                "el_words": "καραβίδα",
+                "gl_words": "creepiest",
+                "uz_words": "Daryo qisqichbaqasi",
+                "yo_words": "ede",
+                "pt_words": "rangido",
+                "iw_words": "סַרטַן הַנַהֲרוֹת",
+                "lo_words": "credential",
+                "be_words": "creates",
+                "bg_words": "credulously",
+                "ilo_words": "mauyong",
+                "ku_words": "credulous",
+                "bho_words": "क्रीक",
+                "ckb_words": "کریکیتر",
+                "sw_words": "creamer",
+                "tl_words": "creeps",
+                "km_words": "ត្រីងៀត",
+                "sd_words": "ڪيفش",
+                "ca_words": "crear",
+                "nl_words": "crazing",
+                "counter": "12651",
+                "af_words": "krewe",
+                "hi_words": "crawls",
+                "kk_words": "өзен шаяны",
+                "rw_words": "crayfish",
+                "sm_words": "i'a",
+                "om_words": "cravenly",
+                "kri_words": "krawl",
+                "ro_words": "cremă",
+                "lg_words": "crayolas",
+                "bs_words": "creaky",
+                "kn_words": "ಕ್ರೇಫಿಷ್",
+                "ko_words": "창조",
+                "et_words": "vähid",
+                "eo_words": "creamiest",
+                "lv_words": "vēži",
+                "pl_words": "krawaty",
+                "fa_words": "خرچنگ",
+                "or_words": "କ୍ରେଫିସ୍ |",
+                "xh_words": "abakholelwayo",
+                "hy_words": "crescendi",
+                "ka_words": "კიბო",
+                "gom_words": "crappy",
+                "sl_words": "zmečkati",
+                "pa_words": "cravens",
+                "sa_words": "creakiest",
+                "cs_words": "crayolas",
+                "ug_words": "راك",
+                "gu_words": "crayola",
+                "ml_words": "ക്രെഫിഷ്",
+                "qu_words": "crayons",
+                "sr_words": "цреамиест",
+                "fy_words": "kreeften",
+                "mk_words": "ракови",
+                "gn_words": "crayoned",
+                "mn_words": "хавч",
+                "sk_words": "crawlspaces",
+                "jw_words": "credited",
+                "dv_words": "ކްރޭސް",
+                "zu_words": "creepier",
+                "co_words": "creased",
+                "da_words": "krebs",
+                "eu_words": "sorkuntza",
+                "doi_words": "सबसे खरखर",
+                "su_words": "creed",
+                "ga_words": "gliomach",
+                "mt_words": "creamer",
+                "id_words": "ruang perayapan",
+                "ny_words": "zolemba",
+                "hmn_words": "creaming",
+                "mi_words": "kōura",
+                "yi_words": "ראַק",
+                "es_words": "guardería",
+                "ht_words": "crèche",
+                "bn_words": "ক্রেফিশ",
+                "fr_words": "crayolas",
+                "hu_words": "rák",
+                "ln_words": "craggy",
+                "hr_words": "kremasto",
+                "st_words": "mopi",
+                "so_words": "kalluunka crayfish",
+                "tg_words": "харчанг",
+                "te_words": "క్రేఫిష్",
+                "en_words": "crayfish",
+                "ay_words": "locos",
+                "th_words": "ความเชื่อที่น่าเชื่อถือ",
+                "ne_words": "creepier",
+                "ps_words": "creativeness",
+                "it_words": "pastelli",
+                "mai_words": "पागलपन"
+            },
+            {
+                "lo_words": "ferns",
+                "mk_words": "filtration",
+                "ru_words": "ferreted",
+                "de_words": "Wildheit",
+                "ca_words": "ferns",
+                "mt_words": "ferret",
+                "sv_words": "ferred",
+                "sn_words": "fest",
+                "sk_words": "hnojenie",
+                "mg_words": "feudal",
+                "kri_words": "fern",
+                "mi_words": "fertilize",
+                "nl_words": "woestheid",
+                "ro_words": "fertilitate",
+                "zu_words": "festal",
+                "en_words": "fern",
+                "sl_words": "fern",
+                "ilo_words": "ferns",
+                "so_words": "fern",
+                "gom_words": "ferociously",
+                "gl_words": "ferry",
+                "my_words": "ferociously။ ferociousness",
+                "su_words": "ferret",
+                "xh_words": "fetlocks",
+                "ay_words": "barco",
+                "am_words": "ልብ ወለድ",
+                "es_words": "fermen ted",
+                "ug_words": "fierier",
+                "lb_words": " fervency",
+                "bm_words": "ferrets",
+                "ta_words": "ஃபெர்ன்",
+                "hy_words": "feverish",
+                "as_words": "সাৰ",
+                "hi_words": "ferns",
+                "fr_words": "fermentation",
+                "gd_words": "fertilize",
+                "ceb_words": " ferociousness",
+                "haw_words": "filets",
+                "lg_words": "ferreted",
+                "is_words": "feudalistic",
+                "be_words": "гарачы",
+                "ee_words": "dea ami",
+                "doi_words": "उग्रता",
+                "no_words": "fest",
+                "th_words": "fibulas",
+                "id_words": "keganasan",
+                "gn_words": "férrico",
+                "lt_words": " fiascos",
+                "counter": "20759",
+                "kk_words": "fillets",
+                "ig_words": "mkpị",
+                "la_words": "fern",
+                "lv_words": "fetches",
+                "fa_words": "finnder",
+                "sd_words": "fertilized",
+                "ja_words": "fibs",
+                "kn_words": "ಜರೀಗಿಡ",
+                "ne_words": "ferns",
+                "sm_words": "fetishst",
+                "cy_words": "fetching",
+                "fy_words": "ferryboats",
+                "iw_words": "פיוד",
+                "ha_words": "cika",
+                "ko_words": "고사리",
+                "sr_words": "ферн",
+                "ur_words": "fertilize",
+                "om_words": "ferrets",
+                "ti_words": "ferrous",
+                "sw_words": "Fennel",
+                "af_words": "fees",
+                "lus_words": " ferociousness",
+                "ku_words": "fickler",
+                "az_words": "fiddle",
+                "da_words": "fetchingly",
+                "uz_words": "fibbers",
+                "dv_words": "ފަރންސް",
+                "gu_words": "ferns",
+                "mai_words": "फेरूल",
+                "st_words": "senyatsi",
+                "cs_words": "úrodnou",
+                "ln_words": "ferreting",
+                "pa_words": "fern",
+                "sa_words": "फेरेटिंग",
+                "tt_words": "fielders",
+                "mn_words": "догшин",
+                "nso_words": "ferments",
+                "ml_words": "ഫേൺ",
+                "ps_words": "ferns",
+                "hu_words": "feted",
+                "ky_words": "final",
+                "it_words": "felce",
+                "jw_words": "ferric",
+                "ckb_words": "فێری",
+                "eu_words": "ferry",
+                "hmn_words": "ferociously",
+                "te_words": "ఫెర్న్",
+                "si_words": "මීවන",
+                "bho_words": "उग्रता से। उग्रता",
+                "ts_words": "fern",
+                "tk_words": "fibber",
+                "yo_words": "filibustering",
+                "bs_words": "ferments",
+                "el_words": "fetlocks",
+                "tg_words": "папоротник",
+                "eo_words": "ferns",
+                "bg_words": "ferns",
+                "uk_words": "тхір",
+                "et_words": "fey",
+                "mr_words": "ferments",
+                "pt_words": "feroz",
+                "tr_words": "ateşli ",
+                "sq_words": "fileting",
+                "or_words": "fez",
+                "ny_words": "fevered",
+                "rw_words": "fern",
+                "pl_words": "fretki",
+                "ms_words": "feried",
+                "ht_words": "ferreting",
+                "ak_words": " ferociousness",
+                "fi_words": "raivokkuus",
+                "qu_words": "abono",
+                "ka_words": "მხურვალე",
+                "bn_words": "fern",
+                "ga_words": "fiascoes",
+                "hr_words": "fermentirati",
+                "tl_words": "ferreted",
+                "ar_words": "فيات",
+                "yi_words": "פילמיער",
+                "km_words": " fervency",
+                "vi_words": "dũng mãnh",
+                "co_words": "ferric"
+            },
+            {
+                "ay_words": "pez plano",
+                "dv_words": "ފްލެޓްފިޝް",
+                "fr_words": "flatfishes",
+                "hmn_words": "flattering",
+                "mt_words": "flatteringly",
+                "pt_words": "pés chatos",
+                "nso_words": "flattest",
+                "bs_words": "flatfoots",
+                "sn_words": "flimsiness",
+                "am_words": "ጠፍጣፋ ዓሣ",
+                "bho_words": "चपटा",
+                "sv_words": "",
+                "ti_words": "ፍላትፉት",
+                "lb_words": "flirt",
+                "ru_words": "лодки",
+                "st_words": "float",
+                "sk_words": "sploštenie",
+                "si_words": "පැතලි මාළු",
+                "vi_words": "phẳng",
+                "tg_words": "моҳии ҳамвор",
+                "da_words": "pletter",
+                "co_words": "flatirons",
+                "ka_words": "flit",
+                "sl_words": "ploskati",
+                "ht_words": "flecking",
+                "kn_words": "ಚಪ್ಪಟೆ ಮೀನು",
+                "ceb_words": "flexes",
+                "ckb_words": "تەخت",
+                "pa_words": "flattop",
+                "sw_words": "kina",
+                "doi_words": "चपटा",
+                "lt_words": "fluffs",
+                "zu_words": "flat",
+                "hi_words": "flaws",
+                "kri_words": "flatfish",
+                "ak_words": "flatcars",
+                "gl_words": "flatirons",
+                "ar_words": "أسطح مسطحة",
+                "ca_words": "aromes",
+                "ee_words": "flatterer",
+                "es_words": "flatfishes",
+                "th_words": "flattening",
+                "ko_words": "플랫풋드",
+                "my_words": "flatten",
+                "yo_words": "flatfish",
+                "ts_words": "flatfoot",
+                "az_words": "floured",
+                "bn_words": "fleck",
+                "te_words": "ఫ్లాట్ ఫిష్",
+                "ky_words": "жалпак балык",
+                "la_words": "flatfoot",
+                "om_words": "flatfoot",
+                "ne_words": "fled",
+                "et_words": "flinches",
+                "mg_words": " flint",
+                "id_words": "mobil datar eet",
+                "ms_words": "terbang",
+                "iw_words": "המעופפים",
+                "uk_words": "шкіряться",
+                "su_words": "kutu",
+                "en_words": "flatfish",
+                "ha_words": "kifin kifi",
+                "tt_words": "fleetness",
+                "yi_words": "בלויזט",
+                "qu_words": "planas",
+                "eo_words": "platigi",
+                "gu_words": "flatbed",
+                "gn_words": "flatirons",
+                "is_words": "flý",
+                "kk_words": "жалпақ балық",
+                "tl_words": "flaunts",
+                "ig_words": "flatfish",
+                "sq_words": "fluoridation",
+                "ml_words": "പരന്ന മത്സ്യം",
+                "or_words": "flower",
+                "ny_words": "flimsiest",
+                "gom_words": "फ्लॅटफुटेड",
+                "gd_words": "flexitime",
+                "sd_words": "flattering",
+                "so_words": "flatfish",
+                "km_words": "flavoring",
+                "ku_words": "flickering",
+                "ta_words": "தட்டை மீன்",
+                "uz_words": "yassi baliq",
+                "jw_words": "kembang",
+                "cy_words": "hedfan",
+                "ug_words": " flume",
+                "ja_words": "fleetest",
+                "ilo_words": " flattered",
+                "lo_words": " ເມີດວິໄນ",
+                "sr_words": "флатфисх",
+                "bm_words": "flatfishes",
+                "el_words": "flippest",
+                "as_words": "flattery",
+                "mk_words": "рамни риби",
+                "bg_words": " ласкател",
+                "rw_words": "ifi",
+                "ur_words": "flatcar",
+                "xh_words": "flimsy",
+                "fa_words": "ماهی پهن",
+                "mr_words": "flattops",
+                "fy_words": "fladdere",
+                "hu_words": "flighty",
+                "de_words": " Plattfische",
+                "hy_words": "flickers",
+                "mn_words": "хавтгай загас",
+                "tk_words": "florid",
+                "ps_words": "flatted",
+                "ro_words": "flatirons",
+                "counter": "21412",
+                "lus_words": "flatfoot",
+                "tr_words": "yassı balıklar",
+                "pl_words": "płaskożelazko",
+                "lv_words": "flora",
+                "no_words": " om",
+                "hr_words": "flatbeds",
+                "mi_words": "flightiness",
+                "it_words": "flatiron",
+                "ga_words": "lomraí",
+                "af_words": "vlugte",
+                "fi_words": "flicks",
+                "eu_words": "lautsuenak",
+                "haw_words": "iʻa pālahalaha",
+                "be_words": "flayed",
+                "mai_words": "फ्लैटफुटेड",
+                "sm_words": "flummoxed",
+                "cs_words": "zploštěný",
+                "sa_words": "फ्लैटफीट",
+                "nl_words": "platvissen",
+                "ln_words": "makolo plat",
+                "lg_words": "flavorings"
+            },
+            {
+                "eo_words": "gillions",
+                "it_words": "gird",
+                "yo_words": "gingko",
+                "km_words": "glamourizes",
+                "qu_words": "ginning",
+                "bn_words": "glaringly",
+                "th_words": "gladiators",
+                "si_words": "ජින්කෝ",
+                "mk_words": "гингко",
+                "ha_words": "gingko",
+                "mn_words": "гинко",
+                "kk_words": "гинко",
+                "lt_words": "gladiola",
+                "gd_words": "caileagan",
+                "no_words": "gladioluses",
+                "eu_words": "girdled",
+                "af_words": "glacially",
+                "gl_words": "girting",
+                "sw_words": "gizzards",
+                "ml_words": "ജിങ്കോ",
+                "de_words": "ginkgos",
+                "rw_words": "gingko",
+                "ln_words": "gingkos",
+                "sa_words": " gingko",
+                "ga_words": "cailíní",
+                "iw_words": "זוהרות",
+                "tl_words": " gleamed",
+                "haw_words": "gingko",
+                "bg_words": " gingko",
+                "su_words": "glamour",
+                "cs_words": "ginkgos",
+                "es_words": "ginning",
+                "as_words": "gingkos",
+                "ka_words": "გახარებული",
+                "ar_words": "glaciers",
+                "st_words": "glamorous",
+                "zu_words": "girding",
+                "hi_words": "ginkgo",
+                "gu_words": "gingerly",
+                "gn_words": "gingivitis",
+                "id_words": "berikan",
+                "ig_words": "gingko",
+                "sd_words": "gladiola",
+                "so_words": "gingko",
+                "pa_words": "gingerly",
+                "lg_words": "giraffe",
+                "ta_words": "ஜிங்கோ",
+                "bs_words": "girlhood",
+                "cy_words": "glamored",
+                "ps_words": "glad",
+                "sv_words": "glamorisera",
+                "lo_words": "gins",
+                "mi_words": "glimmerings",
+                "sl_words": " gingko",
+                "om_words": "ginkgoes",
+                "lv_words": "gladiolas",
+                "lus_words": "gingkoes",
+                "tk_words": "gingko",
+                "doi_words": "ginkgos",
+                "mr_words": "gingerly",
+                "pt_words": "vigas",
+                "vi_words": "ginkgo",
+                "ht_words": "girder",
+                "ky_words": "гинко",
+                "xh_words": "gimmicks",
+                "da_words": "glasset",
+                "fr_words": "gins",
+                "mt_words": "girded",
+                "gom_words": "गिमलेटिंग",
+                "lb_words": "glade",
+                "ti_words": "gingersnap",
+                "ts_words": "gingersnaps",
+                "jw_words": "gloat",
+                "sr_words": " гирлфриенд",
+                "ku_words": "glared",
+                "bho_words": "अदरकनैप",
+                "nso_words": "gimcracks",
+                "pl_words": "girlishly",
+                "en_words": "gingko",
+                "tr_words": "girl",
+                "tt_words": "gnarlier",
+                "la_words": "gizzards",
+                "hy_words": "glade",
+                "mg_words": "gingko",
+                "co_words": "gipsy",
+                "el_words": "glacially",
+                "kn_words": "ಜಿಂಕೊ",
+                "et_words": "glacial",
+                "fy_words": "global",
+                "ay_words": "ginseng",
+                "nl_words": "giraffe",
+                "az_words": "glossies",
+                "counter": "23785",
+                "ru_words": "глад",
+                "hr_words": "gingerly",
+                "hu_words": "girdle",
+                "ur_words": "ginkgo",
+                "uz_words": "gloved",
+                "fi_words": "gismo",
+                "ceb_words": "girds",
+                "ny_words": " glands",
+                "ckb_words": "ginkgoes",
+                "am_words": "gingko",
+                "is_words": "glans",
+                "dv_words": "ގިންނާޕްސް",
+                "mai_words": "अदरक",
+                "ca_words": "girded",
+                "ro_words": "girds",
+                "tg_words": "гинко",
+                "ug_words": "gingko",
+                "be_words": "giraffe",
+                "kri_words": "gingkos",
+                "sq_words": "gladdening",
+                "or_words": "ଜିଙ୍ଗକୋ |",
+                "my_words": "gist",
+                "ilo_words": " gingko",
+                "ko_words": "girders",
+                "ms_words": "gladiatorial",
+                "ne_words": "glazes",
+                "bm_words": "ginkgo",
+                "ee_words": "gipsies",
+                "fa_words": "جینکو",
+                "hmn_words": "girding",
+                "ja_words": "glancing",
+                "te_words": "జింకో",
+                "ak_words": "gingham",
+                "uk_words": "girded",
+                "sk_words": "glade",
+                "yi_words": "גלאָבלעס",
+                "sm_words": "gingko",
+                "sn_words": "glacial"
+            },
+            {
+                "ur_words": " mosey",
+                "sl_words": "morbidity",
+                "kk_words": "мура",
+                "ru_words": "moralizes",
+                "su_words": "gadai",
+                "ar_words": "mosquitos",
+                "pl_words": "morning",
+                "fa_words": "موری",
+                "bho_words": "मोरोस",
+                "hr_words": "more",
+                "az_words": "moray",
+                "hmn_words": "morrow",
+                "sv_words": "moderlös",
+                "tt_words": "Морай",
+                "haw_words": "moray",
+                "ts_words": "mixo",
+                "gl_words": "morte",
+                "pa_words": "more",
+                "bm_words": "morphemes",
+                "no_words": "murene",
+                "ka_words": "დედასამშობლო",
+                "lg_words": "morbidity",
+                "ee_words": "geɖe wu",
+                "th_words": "จำนอง",
+                "af_words": "mure",
+                "ceb_words": "morgue",
+                "gom_words": "mordant",
+                "pt_words": "necrotérios",
+                "ckb_words": "mortals",
+                "sa_words": "moribund",
+                "sm_words": "motives",
+                "tk_words": "ahlak",
+                "km_words": "moseyed",
+                "da_words": "muræne",
+                "mi_words": "mosses",
+                "counter": "35798",
+                "ht_words": "morn",
+                "lo_words": "mortises",
+                "es_words": "morfológico",
+                "uz_words": "moray",
+                "nl_words": "ziekelijk",
+                "cy_words": "moratoriwm",
+                "hy_words": "mortifying",
+                "st_words": "mothball",
+                "doi_words": "सुबह",
+                "rw_words": "moray",
+                "is_words": "múra",
+                "mn_words": "мура",
+                "bg_words": "мрачно",
+                "mk_words": "мореј",
+                "lt_words": "mothball",
+                "ky_words": "мура",
+                "gn_words": "hetave",
+                "as_words": "মৰ্টগেজাৰ। বন্ধকীদাতা বন্ধকীদাতা বন্ধকীদাতা বন্ধকীদাতা বন্ধকী মর্টিচ মর্টিচিয়ান মর্টিচিং মর্টিচিং মর্টিচিং মর্টিচিং mosey",
+                "om_words": "mores",
+                "mr_words": "more",
+                "kn_words": "ಮೊರೆ",
+                "ak_words": "mordants",
+                "fy_words": "moray",
+                "ny_words": "amayi",
+                "sd_words": "moralizing",
+                "eo_words": "mornings",
+                "am_words": "moray",
+                "id_words": "morfem",
+                "ro_words": "morgues",
+                "sq_words": "moray",
+                "tg_words": "мурей",
+                "mt_words": "morpheme",
+                "sw_words": "mots",
+                "gu_words": "morn",
+                "lus_words": "mordant",
+                "sk_words": "zastavaná",
+                "vi_words": "moorings",
+                "bn_words": "মোরে",
+                "bs_words": "mossier",
+                "ay_words": "alwa",
+                "ml_words": "മൊറേ",
+                "si_words": "මෝරේ",
+                "ln_words": "mortals",
+                "dv_words": "މޯރސް",
+                "mai_words": "more",
+                "gd_words": "mosquitoes",
+                "my_words": "morose",
+                "en_words": "moray",
+                "ta_words": "மோரே",
+                "so_words": "moray",
+                "sr_words": "мортифиед",
+                "qu_words": "morosely",
+                "mg_words": "moray",
+                "xh_words": "motion",
+                "nso_words": "mordants",
+                "ko_words": "moseys",
+                "zu_words": "moseys",
+                "fi_words": "morsel",
+                "et_words": " mosey",
+                "ig_words": "moray",
+                "ilo_words": "morgue",
+                "la_words": "mornings",
+                "ca_words": "mortificació",
+                "yi_words": "מוריי",
+                "ga_words": "mortais",
+                "tr_words": "sabah",
+                "lb_words": "moray",
+                "ja_words": "死すべき",
+                "ps_words": "moorland",
+                "cs_words": "ráno",
+                "uk_words": "ранок",
+                "co_words": "mortally",
+                "kri_words": "monshot",
+                "jw_words": "motherboards",
+                "te_words": "మోరే",
+                "lv_words": "mureja",
+                "de_words": "Beizmittel",
+                "ms_words": "ibu",
+                "hu_words": "mortgaging",
+                "eu_words": "morteroak",
+                "yo_words": "moray",
+                "ne_words": "mortgagors",
+                "fr_words": "mordants",
+                "iw_words": "מוריי",
+                "tl_words": "morticing",
+                "ti_words": "ሞራል",
+                "be_words": "памирает",
+                "el_words": "είδος θαλάσσιου ψαριού",
+                "hi_words": "mortise",
+                "or_words": "ମୋରେ",
+                "sn_words": "moseying",
+                "ug_words": "moray",
+                "ku_words": "moray",
+                "it_words": "mattini",
+                "ha_words": "moray"
+            },
+            {
+                "te_words": "ముత్యము",
+                "counter": "40100",
+                "my_words": "pedagogical",
+                "co_words": "pedoni",
+                "pl_words": "peculiarly",
+                "ig_words": "pearl",
+                "ro_words": "pedagogi",
+                "sv_words": "pee",
+                "eu_words": "oinezkoentzako",
+                "uz_words": "marvarid",
+                "vi_words": "phạt",
+                "et_words": "pedigree",
+                "ja_words": "pediatrist",
+                "it_words": "pettorale",
+                "es_words": "picos",
+                "yi_words": "פּערל",
+                "bg_words": "seasantry",
+                "lt_words": "perlas",
+                "sr_words": "бисерно",
+                "el_words": "μαργαριτάρι",
+                "id_words": "patuk",
+                "lg_words": "amapeera",
+                "ps_words": "pedagogical",
+                "zu_words": "pedigreed",
+                "ne_words": "pedlars",
+                "fy_words": "pearl",
+                "doi_words": "कंकड़",
+                "mt_words": "pectin",
+                "lv_words": "pērle",
+                "ts_words": "pebble",
+                "mn_words": "сувд",
+                "bn_words": "মুক্তা",
+                "uk_words": "пекан",
+                "rw_words": "isaro",
+                "mr_words": "peccaries",
+                "lus_words": "pease",
+                "sl_words": "pearling",
+                "fa_words": "مروارید",
+                "fr_words": "perlé",
+                "ny_words": "ngale",
+                "hi_words": "पील",
+                "cs_words": "rolníci",
+                "bs_words": "peerage",
+                "kri_words": "pia",
+                "pa_words": "peas",
+                "ak_words": " nhwene",
+                "sk_words": "pekan",
+                "ca_words": "perla",
+                "tl_words": "pedestrianize",
+                "sm_words": "penina",
+                "am_words": "ዕንቁ",
+                "or_words": "ମୋତି",
+                "sq_words": "perla",
+                "gom_words": "वाटाणे",
+                "gd_words": "peekaboo",
+                "ur_words": "missing!",
+                "ru_words": "педантично",
+                "dv_words": "ޕެކަންސް",
+                "km_words": "pedestrianizing",
+                "da_words": "peddlers",
+                "ku_words": "morîk",
+                "af_words": "pêrel",
+                "gu_words": "peasants",
+                "ha_words": "lu'u-lu'u",
+                "tr_words": "pedagojik",
+                "ug_words": "مەرۋايىت",
+                "xh_words": "ukrobile",
+                "ml_words": "മുത്ത്",
+                "sd_words": "peeling peels",
+                "ceb_words": "peering",
+                "mk_words": "бисер",
+                "mai_words": "पेकाडिलो",
+                "jw_words": "mutiara",
+                "hmn_words": "pebbling",
+                "tg_words": "марворид",
+                "lb_words": "P",
+                "ga_words": "péarla",
+                "lo_words": "pedestal",
+                "sn_words": "pearl",
+                "yo_words": "parili",
+                "ti_words": "ዕንጸይቲ",
+                "tt_words": "энҗе",
+                "be_words": "peeling",
+                "sw_words": "ya",
+                "hy_words": "peck",
+                "eo_words": "peccary",
+                "ht_words": "pedagogic",
+                "ay_words": "pecks",
+                "kn_words": "ಮುತ್ತು",
+                "qu_words": "pedagógico",
+                "sa_words": "pectin",
+                "ee_words": "peddle",
+                "bm_words": "peccadillos",
+                "pt_words": "pérolas",
+                "si_words": "මුතු ඇටය",
+                "th_words": "pedants",
+                "cy_words": "perl",
+                "nso_words": "dinonyana",
+                "ckb_words": "پێکادیلۆ",
+                "mg_words": "VATOSOAN'I",
+                "ky_words": "бермет",
+                "fi_words": "pecuniary",
+                "gn_words": "campesinos",
+                "en_words": "pearl",
+                "is_words": "perla",
+                "su_words": "mutiara",
+                "hr_words": "pecan",
+                "az_words": "mirvari",
+                "hu_words": "gyöngyszem",
+                "no_words": "pedaled",
+                "gl_words": "peeking",
+                "om_words": "peccadilloes",
+                "so_words": "luul",
+                "la_words": "pedagogs",
+                "tk_words": "merjen",
+                "haw_words": "momi",
+                "ka_words": "მარგალიტი",
+                "st_words": "perela",
+                "ilo_words": "perlas",
+                "nl_words": "pears",
+                "kk_words": "інжу",
+                "as_words": "pedagogic",
+                "mi_words": "peara",
+                "iw_words": "פְּנִינָה",
+                "ta_words": "முத்து",
+                "ko_words": "완두콩",
+                "ar_words": "peep",
+                "ms_words": "mutiara",
+                "bho_words": "कंकड़",
+                "de_words": "Perle",
+                "ln_words": "poires"
+            },
+            {
+                "tk_words": "rulers",
+                "bn_words": "rubberneck",
+                "ru_words": "рюкзак",
+                "hy_words": "rudeness",
+                "st_words": "rudiment",
+                "ug_words": "rule",
+                "ka_words": "რუმბა",
+                "sa_words": "रबरीकरण",
+                "nso_words": "rubberizing",
+                "it_words": "rubiest",
+                "jw_words": "rucksack",
+                "ny_words": "rubs",
+                "sl_words": "gumiran",
+                "ms_words": "rum",
+                "uk_words": "гумовий",
+                "gom_words": "रबरीकरण",
+                "te_words": "రబ్బరు",
+                "tg_words": "rustlers",
+                "om_words": "rubber",
+                "as_words": "ruble",
+                "hmn_words": "rubbernecked",
+                "hr_words": "royalty",
+                "fr_words": "rubbed",
+                "ilo_words": "rub",
+                "sr_words": "руббер",
+                "ht_words": "rubberneck",
+                "bho_words": "रबरनेकिंग",
+                "ro_words": "cauciuc",
+                "bg_words": " rubier",
+                "es_words": "robusto",
+                "ps_words": "rpm",
+                "su_words": " digosok",
+                "ts_words": "rubber",
+                "xh_words": "rps",
+                "am_words": "የሚያፈርስ",
+                "bs_words": "rubberizes",
+                "is_words": "",
+                "kk_words": "ruggedest",
+                "hi_words": "रूब",
+                "dv_words": "ރަބަރު ނެކް",
+                "pl_words": "rubbished",
+                "qu_words": " frotado",
+                "gd_words": " rudimentary",
+                "eu_words": "gomatua",
+                "ja_words": "ruffs",
+                "so_words": "caag",
+                "id_words": "karet",
+                "th_words": "ruffs",
+                "sq_words": "rupee",
+                "en_words": "rubber",
+                "lo_words": " rugrats",
+                "ceb_words": "rucksack",
+                "nl_words": "gewreven",
+                "gl_words": "gomada",
+                "kn_words": "ರಬ್ಬರ್",
+                "rw_words": "sagging",
+                "ml_words": "റബ്ബർ",
+                "sw_words": "rubbing",
+                "mai_words": "रबरीकरण",
+                "pt_words": "rubberneck",
+                "tl_words": "rubdowns",
+                "ky_words": "sacristies",
+                "az_words": "ruffed",
+                "fi_words": "rue",
+                "bm_words": "rubberize",
+                "doi_words": "रबरीकरण",
+                "hu_words": "rudiments",
+                "ln_words": "e",
+                "cy_words": "rhedeg",
+                "fy_words": "rulings",
+                "lt_words": "rubiest",
+                "sd_words": " rubbed",
+                "vi_words": "rubberize",
+                "be_words": "гумаваць",
+                "ckb_words": "زبڵ",
+                "el_words": " rumpling",
+                "ga_words": "ru",
+                "kri_words": "rɔba nɛk",
+                "ca_words": "cautxú",
+                "co_words": "rubberizing",
+                "eo_words": "rubberize",
+                "ko_words": "ru 파일",
+                "ak_words": "row",
+                "my_words": "rubbernecked",
+                "ar_words": "rubbishy",
+                "tr_words": "ruddiest",
+                "la_words": "rubbernecking",
+                "ti_words": "rubberized",
+                "yi_words": "רומער",
+                "da_words": "gummi",
+                "mn_words": "runway",
+                "mk_words": "sail пловеа",
+                "mi_words": "ruffs",
+                "sk_words": "pogumované",
+                "ay_words": " frotado",
+                "ne_words": "rubberizes",
+                "or_words": "rugged",
+                "af_words": "rubrics",
+                "pa_words": "rubber",
+                "mr_words": "rubber",
+                "ur_words": "rubber",
+                "ig_words": "Emebi",
+                "lus_words": "rubberizes",
+                "yo_words": "ruddy",
+                "sn_words": "rubles",
+                "ee_words": "rubberizes",
+                "mg_words": "manapaka",
+                "sv_words": "",
+                "de_words": "rubbed",
+                "iw_words": "הרוסים",
+                "sm_words": "sages",
+                "haw_words": "sagged",
+                "lv_words": "rubies",
+                "no_words": "rubber",
+                "ha_words": "rumin",
+                "fa_words": "روان",
+                "lb_words": "rum",
+                "ta_words": "ரப்பர்",
+                "uz_words": "rues",
+                "gu_words": "rubber",
+                "zu_words": "rubbishing",
+                "gn_words": "cuello",
+                "km_words": "rubberneck",
+                "si_words": "රබර්",
+                "tt_words": "rues",
+                "ku_words": "rued",
+                "lg_words": "rubberneck",
+                "et_words": "ruler",
+                "counter": "48165",
+                "mt_words": "rubbernecks",
+                "cs_words": "gumové"
+            },
+            {
+                "is_words": "skólagörðum",
+                "cy_words": "prin",
+                "ti_words": "save",
+                "en_words": "savanna",
+                "es_words": "más salvaje",
+                "be_words": "насычаны",
+                "hr_words": "saved",
+                "ja_words": "scarcer",
+                "am_words": "ሳቫና",
+                "bho_words": "सेवरी",
+                "ckb_words": "saved",
+                "iw_words": "סכימה",
+                "uz_words": "savanna",
+                "ha_words": "schools",
+                "ka_words": "scheduled",
+                "mi_words": "schoolroom",
+                "or_words": "schismatic",
+                "haw_words": "schoolmistress",
+                "ta_words": "சவன்னா",
+                "ku_words": "scaffold",
+                "pt_words": "salvador",
+                "lo_words": "scads",
+                "gl_words": "vaina",
+                "so_words": "savanna",
+                "da_words": "skaller",
+                "zu_words": "ama-scali",
+                "ca_words": "sabana",
+                "pa_words": "cabbies scabrous",
+                "tr_words": "saviourer",
+                "nl_words": "sauté",
+                "af_words": "skaars",
+                "ug_words": "savanna",
+                "la_words": "savior",
+                "ak_words": "savagest",
+                "ru_words": "говорят",
+                "fi_words": "scarfing",
+                "rw_words": "savanna",
+                "kn_words": "ಸವನ್ನಾ",
+                "cs_words": "savvier",
+                "hmn_words": "savoring",
+                "lg_words": "savannahes",
+                "mt_words": "savored",
+                "pl_words": "savannah",
+                "th_words": "scarified",
+                "ml_words": "സാവന്ന",
+                "doi_words": "स्वाद",
+                "fa_words": "ساوانا",
+                "si_words": "සවානා",
+                "ceb_words": "sawmills",
+                "id_words": "buas",
+                "mk_words": "савана",
+                "gd_words": "sgandalizing",
+                "bg_words": "saved",
+                "bn_words": "scalded",
+                "it_words": "savvy",
+                "hi_words": "सेवियर",
+                "co_words": "scads",
+                "et_words": "hajutatud",
+                "ps_words": "savaging",
+                "sr_words": "саворинг",
+                "mg_words": "scepter",
+                "my_words": "saxes",
+                "eu_words": "scaled scallion",
+                "eo_words": "saksofonistoj",
+                "as_words": "saves",
+                "st_words": "scalpel",
+                "sd_words": "savagest",
+                "gu_words": "saviours",
+                "ilo_words": "savant",
+                "sn_words": "scandalize",
+                "jw_words": "omah sekolah",
+                "lv_words": "scherzo",
+                "lb_words": "Schoulhaff",
+                "lt_words": "schlock",
+                "ky_words": "саванна",
+                "ms_words": "kata",
+                "el_words": "scallop",
+                "kk_words": "scarce",
+                "counter": "48877",
+                "om_words": "savants",
+                "yo_words": "schema",
+                "ga_words": "scaipthe",
+                "qu_words": "savored",
+                "lus_words": "savers",
+                "su_words": "scam",
+                "hy_words": "say",
+                "xh_words": "aphoswe",
+                "te_words": "సవన్నా",
+                "ln_words": "ba",
+                "mr_words": "savors",
+                "sk_words": "najchutnejšie",
+                "tt_words": " scathingly",
+                "sq_words": "schleps",
+                "km_words": "scalding",
+                "sa_words": "saviours",
+                "ne_words": " scabrous",
+                "fy_words": "savanne",
+                "sm_words": "scarceness",
+                "no_words": "skandale",
+                "az_words": "səpələnmiş",
+                "yi_words": "schoolbook",
+                "ts_words": "savageries",
+                "bm_words": "saves",
+                "nso_words": "sautéed",
+                "gn_words": "salvador",
+                "ay_words": " ahorro",
+                "tl_words": "saws",
+                "kri_words": "savannahs",
+                "sv_words": "smusslor",
+                "ht_words": "savories",
+                "uk_words": "саксофоніст",
+                "ur_words": "sawries sawmill",
+                "ko_words": "",
+                "bs_words": "save",
+                "mai_words": "बचतकर्ता",
+                "sw_words": "kuridhisha",
+                "hu_words": "scallywag",
+                "ig_words": "savanna",
+                "tk_words": "scattered",
+                "gom_words": "savagest",
+                "de_words": "säge",
+                "ny_words": "zamba",
+                "dv_words": "ސޭވަރސް",
+                "ro_words": "cel mai sălbatic",
+                "ee_words": "saving",
+                "vi_words": "savage",
+                "fr_words": "savannahes",
+                "sl_words": "saver",
+                "ar_words": "غمد",
+                "mn_words": "schmoozing",
+                "tg_words": "missing!"
+            }
+        ];
+        let state = {}
+        state.data = data;
+        let current = state.data.pop(0);
+        const selectedLanguages = [];
+        var userLang = (navigator.language || navigator.userLanguage).split('-')[0];
+        let currentWord = current[userLang + "_words"];
+        let toReveal = current;
+
+        // Initialize UI elements
+        const languageSearch = document.getElementById('languageSearch');
+        const possibleLanguages = document.getElementById('possibleLanguages');
+        const languageDropdown = document.getElementById('languageDropdown');
+        const selectedLanguagesContainer = document.getElementById('selectedLanguages');
+        const translation = document.getElementById('translation');
+        const wordList = document.getElementById('wordList');
+        possibleLanguages.innerHTML = "<p>Languages accommodated:</p><p>"
+        possibleLanguages.innerHTML += Object.keys(languages).map(lang => `<span> ${lang} </span>`).join("") + "</p>"
+        function repopulate(word) {
+            findChosen(word)
+                .then(populate)
+                .then(() => fetchRelatedWords(word))
+                .then(showRelatedWords)
+        }
+        async function findChosen(word) {
+            let chosenObj;
+            state.data.map(obj => {
+                if (word == obj[userLang + '_words']) { chosenObj = obj; }
+            });
+            return chosenObj;
+        }
+        async function populate(selection) {
+            currentWord = selection[userLang + '_words'];
+            mainWord.innerText = currentWord;
+            toReveal = selection;
+            if (selectedLanguages.length === 0) {
+                translation.innerHTML = Object.keys(selection).map(k => `<span style='margin: 4px;'>${languageCodes[k]}: ${selection[k]}. </span>`).join('');
+            } else {
+                let translationInnerHTML = '';
+                Object.keys(selection).map(k => {
+                    if (selectedLanguages.includes(k.split("_")[0])) {
+                        translationInnerHTML += `<span style='margin: 4px;'>${languageCodes[k]}: ${selection[k]}. </span>`
+                    };
+                }
+                );
+                translation.innerHTML = translationInnerHTML;
+            }
+        }
+        function showRelatedWords() {
+            wordList.innerHTML = state.data.map(obj => `<div onmousedown='repopulate(\"${obj[userLang + '_words']}\")' class='btn' style='width: 150px; margin: 4px;'>
+                ${obj[userLang + '_words']}</div>`).join('');
+        }
+        languageSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            languageDropdown.innerHTML = '';
+            languageDropdown.classList.remove('hidden');
+
+            Object.entries(languages)
+                .filter(([name]) => name.toLowerCase().includes(searchTerm))
+                .forEach(([name, code]) => {
+                    if (!selectedLanguages.includes(name)) {
+                        const option = document.createElement('div');
+                        option.className = 'language-option';
+                        option.textContent = name;
+                        option.onclick = () => addLanguage(name, code);
+                        languageDropdown.appendChild(option);
+                    }
+                });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!languageSearch.contains(e.target)) {
+                languageDropdown.classList.add('hidden');
+            }
+        });
+
+        function addLanguage(name, code) {
+            selectedLanguages.push(code);
+            updateSelectedLanguagesUI();
+            languageDropdown.classList.add('hidden');
+            languageSearch.value = '';
+            populate(toReveal)
+        }
+
+        function removeLanguage(code) {
+            selectedLanguages.splice(selectedLanguages.indexOf(code), 1);
+            updateSelectedLanguagesUI();
+            populate(toReveal)
+        }
+
+        function updateSelectedLanguagesUI() {
+            selectedLanguagesContainer.innerHTML = '';
+            selectedLanguages.forEach(name => {
+                const tag = document.createElement('span');
+                tag.className = 'language-tag';
+                tag.innerHTML = `
+                    ${languageCodes[name + '_words']}
+                    <button onclick='removeLanguage(\"${name}\")'>×</button>
+                `;
+                selectedLanguagesContainer.appendChild(tag);
+            });
+        }
+
+        async function fetchRelatedWords(word) {
+            return fetch(`/next/${word}`)
+                .then(response => response.json())
+                .then(data => {
+                    state.data = data;
+                });
+        }
+
+        populate(toReveal).then(showRelatedWords); addLanguage("Czech", "cs");
+    </script>
+</body>
+
+</html>
